@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Bot, User, Settings, Info, Zap, Code, Search, Palette, BarChart3 } from 'lucide-react';
+import { Send, Bot, User, Settings, Info, Zap, Code, Search, Palette, BarChart3, Copy, RotateCcw, Menu, Plus } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface Message {
   id: string;
@@ -35,7 +35,7 @@ function App() {
   const [selectedAgent, setSelectedAgent] = useState('default');
   const [sessionId, setSessionId] = useState<string>('');
   const [backendStatus, setBackendStatus] = useState<BackendStatus>({ running: false, port: 8000 });
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -140,42 +140,55 @@ function App() {
     setSessionId(`chat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
   };
 
+  const copyMessage = (content: string) => {
+    navigator.clipboard.writeText(content);
+  };
+
   const getAgentInfo = (agentType: string) => {
     return AGENT_TYPES.find(agent => agent.id === agentType) || AGENT_TYPES[0];
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex h-screen bg-white">
       {/* Sidebar */}
-      <div className={`bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-16'}`}>
-        <div className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <Zap className="w-5 h-5 text-white" />
-            </div>
+      <div className={`bg-gray-50 border-r border-gray-200 transition-all duration-300 flex flex-col ${sidebarOpen ? 'w-64' : 'w-12'}`}>
+        {/* Header */}
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-1 rounded-md hover:bg-gray-200 transition-colors"
+            >
+              <Menu className="w-5 h-5 text-gray-600" />
+            </button>
             {sidebarOpen && (
-              <div>
-                <h1 className="font-semibold text-gray-900 dark:text-white">Spartacus</h1>
-                <p className="text-xs text-gray-500">Desktop</p>
-              </div>
+              <button
+                onClick={clearChat}
+                className="p-1 rounded-md hover:bg-gray-200 transition-colors"
+              >
+                <Plus className="w-5 h-5 text-gray-600" />
+              </button>
             )}
           </div>
+          
+          {sidebarOpen && (
+            <div className="mt-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-8 h-8 bg-gradient-to-r from-orange-400 to-orange-500 rounded-lg flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h1 className="font-medium text-gray-900">Spartacus</h1>
+                  <p className="text-xs text-gray-500">AI Assistant</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="px-4 py-2">
-          <button
-            onClick={clearChat}
-            className="w-full text-left p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-sm text-gray-700 dark:text-gray-300"
-          >
-            {sidebarOpen ? 'New Chat' : '✚'}
-          </button>
-        </div>
-
+        {/* Agent Selection */}
         {sidebarOpen && (
-          <div className="px-4 py-4">
-            <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
-              Agents
-            </h3>
+          <div className="flex-1 p-4">
             <div className="space-y-1">
               {AGENT_TYPES.map((agent) => {
                 const IconComponent = agent.icon;
@@ -183,15 +196,18 @@ function App() {
                   <button
                     key={agent.id}
                     onClick={() => setSelectedAgent(agent.id)}
-                    className={`w-full text-left p-2 rounded-lg text-sm transition-colors ${
+                    className={`w-full text-left p-3 rounded-lg text-sm transition-all ${
                       selectedAgent === agent.id
-                        ? 'bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        ? 'bg-orange-50 text-orange-700 border border-orange-200'
+                        : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       <IconComponent className="w-4 h-4" />
-                      <span>{agent.name}</span>
+                      <div>
+                        <div className="font-medium">{agent.name}</div>
+                        <div className="text-xs text-gray-500">{agent.description}</div>
+                      </div>
                     </div>
                   </button>
                 );
@@ -200,12 +216,13 @@ function App() {
           </div>
         )}
 
-        <div className="mt-auto p-4 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${backendStatus.running ? 'bg-green-400' : 'bg-red-400'}`} />
+        {/* Status */}
+        <div className="p-4 border-t border-gray-200">
+          <div className={`flex items-center gap-2 text-xs ${sidebarOpen ? '' : 'justify-center'}`}>
+            <div className={`w-2 h-2 rounded-full ${backendStatus.running ? 'bg-green-500' : 'bg-red-500'}`} />
             {sidebarOpen && (
-              <span className="text-xs text-gray-500">
-                Backend {backendStatus.running ? 'Connected' : 'Disconnected'}
+              <span className="text-gray-500">
+                {backendStatus.running ? 'Connected' : 'Disconnected'}
               </span>
             )}
           </div>
@@ -214,176 +231,186 @@ function App() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                <Settings className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-              </button>
-              
-              <div className="flex items-center gap-2">
-                {React.createElement(getAgentInfo(selectedAgent).icon, { className: "w-5 h-5 text-blue-600" })}
-                <span className="font-medium text-gray-900 dark:text-white">
-                  {getAgentInfo(selectedAgent).name} Agent
-                </span>
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-3xl mx-auto px-4 py-8">
+            {messages.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="w-16 h-16 bg-gradient-to-r from-orange-400 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Zap className="w-8 h-8 text-white" />
+                </div>
+                <h2 className="text-2xl font-medium text-gray-900 mb-2">Welcome to Spartacus</h2>
+                <p className="text-gray-600 mb-6">Your AI-powered desktop assistant</p>
+                <div className="text-left">
+                  <p className="text-gray-600 mb-2">Try asking:</p>
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => setInputValue("Write a Python function to calculate fibonacci numbers")}
+                      className="block w-full text-left p-3 rounded-lg border border-gray-200 hover:border-orange-300 hover:bg-orange-50 transition-all text-sm"
+                    >
+                      💻 Write a Python function to calculate fibonacci numbers
+                    </button>
+                    <button
+                      onClick={() => setInputValue("Explain quantum computing in simple terms")}
+                      className="block w-full text-left p-3 rounded-lg border border-gray-200 hover:border-orange-300 hover:bg-orange-50 transition-all text-sm"
+                    >
+                      🔬 Explain quantum computing in simple terms
+                    </button>
+                    <button
+                      onClick={() => setInputValue("Help me brainstorm ideas for a mobile app")}
+                      className="block w-full text-left p-3 rounded-lg border border-gray-200 hover:border-orange-300 hover:bg-orange-50 transition-all text-sm"
+                    >
+                      🎨 Help me brainstorm ideas for a mobile app
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-6">
+                {messages.map((message) => (
+                  <div key={message.id} className="group">
+                    <div className="flex gap-4">
+                      {/* Avatar */}
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        message.role === 'user' 
+                          ? 'bg-gray-100' 
+                          : 'bg-gradient-to-r from-orange-400 to-orange-500'
+                      }`}>
+                        {message.role === 'user' ? (
+                          <User className="w-4 h-4 text-gray-600" />
+                        ) : (
+                          <Bot className="w-4 h-4 text-white" />
+                        )}
+                      </div>
 
-            <div className="flex items-center gap-2">
-              <div className={`px-2 py-1 rounded-full text-xs ${
-                backendStatus.running 
-                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                  : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-              }`}>
-                {backendStatus.running ? 'Online' : 'Offline'}
+                      {/* Message Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-medium text-gray-900">
+                            {message.role === 'user' ? 'You' : 'Spartacus'}
+                          </span>
+                          {message.agent_type && message.agent_type !== 'default' && (
+                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                              {getAgentInfo(message.agent_type).name}
+                            </span>
+                          )}
+                        </div>
+                        
+                        <div className="prose prose-sm max-w-none">
+                          <ReactMarkdown
+                            components={{
+                              code({ node, className, children, ...props }: any) {
+                                const match = /language-(\w+)/.exec(className || '');
+                                const isInline = !match;
+                                return !isInline ? (
+                                  <SyntaxHighlighter
+                                    style={oneLight as any}
+                                    language={match[1]}
+                                    PreTag="div"
+                                    className="rounded-lg !bg-gray-50 !border border-gray-200"
+                                    {...props}
+                                  >
+                                    {String(children).replace(/\n$/, '')}
+                                  </SyntaxHighlighter>
+                                ) : (
+                                  <code className="bg-gray-100 text-gray-800 px-1 py-0.5 rounded text-sm" {...props}>
+                                    {children}
+                                  </code>
+                                );
+                              },
+                            }}
+                          >
+                            {message.content}
+                          </ReactMarkdown>
+                        </div>
+
+                        {/* Message Actions */}
+                        {message.role === 'assistant' && (
+                          <div className="flex items-center gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => copyMessage(message.content)}
+                              className="p-1 rounded-md hover:bg-gray-100 transition-colors"
+                              title="Copy message"
+                            >
+                              <Copy className="w-4 h-4 text-gray-500" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                // Retry functionality - resend the last user message
+                                const lastUserMessage = messages.filter(m => m.role === 'user').pop();
+                                if (lastUserMessage) {
+                                  setInputValue(lastUserMessage.content);
+                                }
+                              }}
+                              className="p-1 rounded-md hover:bg-gray-100 transition-colors"
+                              title="Retry"
+                            >
+                              <RotateCcw className="w-4 h-4 text-gray-500" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                {isLoading && (
+                  <div className="flex gap-4">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-orange-400 to-orange-500 flex items-center justify-center">
+                      <Bot className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900 mb-1">Spartacus</div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
+                        <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                        <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
+            )}
+            <div ref={messagesEndRef} />
           </div>
         </div>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4">
-                <Bot className="w-8 h-8 text-white" />
-              </div>
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Welcome to Spartacus Desktop
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4 max-w-md">
-                Your AI assistant powered by your own agentic library. Choose an agent type and start chatting!
-              </p>
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                Selected: {getAgentInfo(selectedAgent).name} - {getAgentInfo(selectedAgent).description}
-              </div>
-            </div>
-          ) : (
-            messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                {message.role === 'assistant' && (
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Bot className="w-5 h-5 text-white" />
-                  </div>
-                )}
-                
-                <div className={`max-w-3xl ${message.role === 'user' ? 'order-first' : ''}`}>
-                  <div
-                    className={`p-4 rounded-lg ${
-                      message.role === 'user'
-                        ? 'bg-blue-600 text-white ml-auto'
-                        : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700'
-                    }`}
-                  >
-                    <div className="prose prose-sm max-w-none dark:prose-invert">
-                      {message.role === 'user' ? (
-                        <p className="m-0">{message.content}</p>
-                      ) : (
-                        <ReactMarkdown
-                          components={{
-                            code({ node, inline, className, children, ...props }) {
-                              const match = /language-(\w+)/.exec(className || '');
-                              return !inline && match ? (
-                                <SyntaxHighlighter
-                                  style={vscDarkPlus}
-                                  language={match[1]}
-                                  PreTag="div"
-                                  {...props}
-                                >
-                                  {String(children).replace(/\n$/, '')}
-                                </SyntaxHighlighter>
-                              ) : (
-                                <code className={className} {...props}>
-                                  {children}
-                                </code>
-                              );
-                            },
-                          }}
-                        >
-                          {message.content}
-                        </ReactMarkdown>
-                      )}
-                    </div>
-                    
-                    {message.agent_type && message.role === 'assistant' && (
-                      <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
-                        <Info className="w-3 h-3" />
-                        <span>{getAgentInfo(message.agent_type).name} Agent</span>
-                        {message.tools_used && message.tools_used.length > 0 && (
-                          <span>• Tools: {message.tools_used.join(', ')}</span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    {message.timestamp.toLocaleTimeString()}
-                  </div>
-                </div>
-
-                {message.role === 'user' && (
-                  <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <User className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                  </div>
-                )}
-              </div>
-            ))
-          )}
-          
-          {isLoading && (
-            <div className="flex gap-3 justify-start">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <Bot className="w-5 h-5 text-white" />
-              </div>
-              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-                  <span className="ml-2 text-sm text-gray-500">Thinking...</span>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Input */}
-        <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
-          <div className="max-w-4xl mx-auto">
+        {/* Input Area */}
+        <div className="border-t border-gray-200 bg-white">
+          <div className="max-w-3xl mx-auto p-4">
             <div className="relative">
               <textarea
                 ref={inputRef}
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Type your message..."
+                placeholder="Message Spartacus..."
+                className="w-full px-4 py-3 pr-12 rounded-xl border border-gray-200 focus:border-orange-300 focus:ring-2 focus:ring-orange-100 focus:outline-none resize-none text-gray-900 placeholder-gray-500"
+                style={{ minHeight: '52px', maxHeight: '200px' }}
                 disabled={!backendStatus.running}
-                className="w-full resize-none border border-gray-300 dark:border-gray-600 rounded-lg p-3 pr-12 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                rows={inputValue.split('\n').length}
+                rows={1}
+                onInput={(e) => {
+                  const target = e.target as HTMLTextAreaElement;
+                  target.style.height = 'auto';
+                  target.style.height = Math.min(target.scrollHeight, 200) + 'px';
+                }}
               />
               <button
                 onClick={sendMessage}
                 disabled={!inputValue.trim() || isLoading || !backendStatus.running}
-                className="absolute right-2 top-2 p-2 text-blue-600 hover:text-blue-700 disabled:text-gray-400 disabled:cursor-not-allowed"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-lg bg-orange-500 hover:bg-orange-600 disabled:bg-gray-200 disabled:cursor-not-allowed transition-colors"
               >
-                <Send className="w-5 h-5" />
+                <Send className="w-4 h-4 text-white" />
               </button>
             </div>
             
-            <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-              Press Enter to send, Shift+Enter for new line
-              {!backendStatus.running && (
-                <span className="text-red-500 ml-2">• Backend disconnected</span>
-              )}
+            <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
+              <div>
+                {getAgentInfo(selectedAgent).name} agent selected
+              </div>
+              <div>
+                Press Enter to send, Shift+Enter for new line
+              </div>
             </div>
           </div>
         </div>
