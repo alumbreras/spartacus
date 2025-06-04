@@ -8,10 +8,10 @@ from typing import List, Dict, Optional, Any, Callable, Awaitable
 from pydantic import BaseModel
 
 # ✅ Updated imports for standalone operation
-from llm_clients.azure_openai_client import AzureOpenAIClient
-from spartacus_services.context import Context
-from agentic_lib.tools import Tool  # ✅ Use original Tool implementation
 from spartacus_services.logger import logger as structured_logger
+from spartacus_services.context import Context
+from .llm_clients.azure_openai_client import AzureOpenAIClient
+from .tools import Tool
 
 logger = logging.getLogger(__name__)
 

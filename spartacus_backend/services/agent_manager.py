@@ -18,7 +18,7 @@ from agentic_lib.base_agent import BaseAgent
 from agentic_lib.tools import Tool
 from spartacus_services.context import Context
 from spartacus_services.logger import get_logger
-from llm_clients.azure_openai_client import AzureOpenAIClient
+from agentic_lib.llm_clients.azure_openai_client import AzureOpenAIClient
 
 from spartacus_backend.models.requests import AgentType
 from spartacus_backend.models.responses import AgentInfo, ToolInfo, AgentListResponse, ResponseStatus
@@ -64,11 +64,18 @@ class SpartacusAgentManager:
         
         # Initialize LLM client
         try:
+            logger.info("Attempting to initialize Azure OpenAI client...")
             self.llm_client = AzureOpenAIClient()
-            logger.info("✅ LLM client initialized")
+            
+            # Test the client to make sure it's working
+            test_messages = [{"role": "user", "content": "test"}]
+            await self.llm_client.invoke(test_messages)
+            
+            logger.info("✅ LLM client initialized and tested successfully")
         except Exception as e:
             logger.error(f"❌ Failed to initialize LLM client: {e}")
-            # Continue without LLM client for now
+            logger.warning("⚠️  Continuing without LLM client - agents will use mock responses")
+            self.llm_client = None
         
         # Initialize default tools
         await self._load_tools()
@@ -77,6 +84,12 @@ class SpartacusAgentManager:
         await self._create_default_agents()
         
         logger.info(f"✅ Agent Manager initialized with {len(self.agents)} agents and {len(self.tools)} tools")
+        logger.info(f"🤖 LLM Client status: {'REAL Azure OpenAI' if self.llm_client else 'MOCK responses'}")
+        
+        # Debug: Check which agents are real vs mock
+        for agent_id, agent_instance in self.agents.items():
+            agent_type = "REAL Azure OpenAI" if hasattr(agent_instance.agent, 'llm_client') else "MOCK"
+            logger.info(f"🔧 Agent {agent_id}: {agent_type}")
     
     async def cleanup(self):
         """Cleanup resources"""
@@ -94,29 +107,28 @@ class SpartacusAgentManager:
     async def _load_tools(self):
         """Load available tools from agentic_lib"""
         try:
-            # Import and register available tools
-            from agentic_lib.tools import (
-                PythonExecutorTool,
-                FileReaderTool,
-                WebSearchTool,
-                # Add other tools as they become available
-            )
+            # Import only the tools that actually exist
+            from agentic_lib.final_answer import final_answer_tool
             
-            # Register tools
-            tools_to_register = [
-                PythonExecutorTool(),
-                FileReaderTool(),
-                WebSearchTool(),
-            ]
+            # Register actual tools
+            self.tools["final_answer"] = final_answer_tool
+            logger.info(f"Registered tool: final_answer")
             
-            for tool in tools_to_register:
-                self.tools[tool.name] = tool
-                logger.info(f"Registered tool: {tool.name}")
+            # Create mock tools for missing functionality (future implementation)
+            mock_tools = {
+                "python_executor": self._create_mock_tool("python_executor", "Execute Python code"),
+                "file_reader": self._create_mock_tool("file_reader", "Read files"),
+                "web_search": self._create_mock_tool("web_search", "Search the web"),
+            }
+            
+            self.tools.update(mock_tools)
+            logger.info(f"Created {len(mock_tools)} mock tools for development")
                 
         except Exception as e:
             logger.warning(f"Could not load some tools: {e}")
             # Create basic mock tools for testing
             self.tools = {
+                "final_answer": self._create_mock_tool("final_answer", "Provide final answer"),
                 "python_executor": self._create_mock_tool("python_executor", "Execute Python code"),
                 "file_reader": self._create_mock_tool("file_reader", "Read files"),
                 "web_search": self._create_mock_tool("web_search", "Search the web"),
@@ -134,6 +146,26 @@ class SpartacusAgentManager:
                     "status": "success",
                     "result": f"Mock execution of {self.name}",
                     "parameters": kwargs
+                }
+            
+            def get_openai_tool(self) -> Dict[str, Any]:
+                """Return OpenAI tool format for this mock tool"""
+                return {
+                    "type": "function",
+                    "function": {
+                        "name": self.name,
+                        "description": self.description,
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "query": {
+                                    "type": "string",
+                                    "description": f"Input for {self.name}"
+                                }
+                            },
+                            "required": ["query"]
+                        }
+                    }
                 }
         
         return MockTool(name, description)
@@ -194,16 +226,32 @@ class SpartacusAgentManager:
         agent_id = f"agent-{uuid.uuid4().hex[:8]}"
         
         try:
-            # Create a simple mock agent instead of BaseAgent for now
-            class MockAgent:
-                def __init__(self, instructions: str):
-                    self.instructions = instructions
-                    self.iteration_count = 1
-                    
-                async def run_until_final_answer(self, user_input: str, context):
-                    return f"Mock response to '{user_input}': I'm a {agent_type} agent. {self.instructions[:100]}"
-            
-            agent = MockAgent(instructions)
+            # Create real BaseAgent with Azure OpenAI client
+            if not self.llm_client:
+                logger.warning(f"No LLM client available, creating mock agent for {name}")
+                # Create a simple mock agent instead of BaseAgent for now
+                class MockAgent:
+                    def __init__(self, instructions: str):
+                        self.instructions = instructions
+                        self.iteration_count = 1
+                        
+                    async def run_until_final_answer(self, user_input: str, context):
+                        return f"Mock response to '{user_input}': I'm a {agent_type} agent. {self.instructions[:100]}"
+                
+                agent = MockAgent(instructions)
+            else:
+                # Create real agent with Azure OpenAI
+                logger.info(f"Creating REAL agent {name} with Azure OpenAI client")
+                agent_tools = {name: tool for name, tool in self.tools.items() if name in tools}
+                system_prompt = f"You are a {name}. {instructions}\n\nAvailable tools: {', '.join(agent_tools.keys())}"
+                
+                agent = BaseAgent(
+                    llm_client=self.llm_client,
+                    tools=agent_tools,
+                    system_prompt=system_prompt,
+                    max_iterations=10
+                )
+                logger.info(f"✅ Real BaseAgent created for {name} with {len(agent_tools)} tools")
             
             # Create agent instance wrapper
             agent_instance = AgentInstance(agent_id, agent_type, agent)
@@ -237,13 +285,36 @@ class SpartacusAgentManager:
             if context:
                 agent_instance.context.update(context)
             
-            # Run the agent - use mock approach for now
-            response = await agent_instance.agent.run_until_final_answer(
-                user_input,
-                agent_instance.context
-            )
-            tools_used = []  # Mock tools used
-            iterations = getattr(agent_instance.agent, 'iteration_count', 1)
+            # Check if this is a real BaseAgent or mock
+            if hasattr(agent_instance.agent, 'llm_client'):
+                # Real BaseAgent - create proper Context object
+                from spartacus_services.context import Context
+                agent_context = Context()
+                agent_context.message_history = agent_instance.context.get("messages", [])
+                
+                # Run the real agent with Azure OpenAI
+                logger.info(f"Running real agent {agent_id} with Azure OpenAI")
+                agent_response = await agent_instance.agent.run_until_final_answer(
+                    user_input, 
+                    agent_context
+                )
+                
+                response = agent_response.final_answer or agent_response.text_response or "Agent completed successfully"
+                tools_used = agent_response.tools_executed
+                iterations = agent_response.iterations
+                
+                # Update context with new messages
+                agent_instance.context["messages"] = agent_context.message_history
+                
+            else:
+                # Mock agent fallback
+                logger.info(f"Running mock agent {agent_id}")
+                response = await agent_instance.agent.run_until_final_answer(
+                    user_input,
+                    agent_instance.context
+                )
+                tools_used = []  # Mock tools used
+                iterations = getattr(agent_instance.agent, 'iteration_count', 1)
             
             execution_time = time.time() - start_time
             

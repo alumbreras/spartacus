@@ -1,264 +1,256 @@
 # 🏛️ Spartacus Desktop
 
-**Your Personal AI Assistant - Claude Desktop Alternative**
+**Claude Desktop Alternative** - A powerful desktop application built with Python agents and modern web technologies.
 
-Spartacus Desktop is a modern, desktop AI assistant application that combines the power of your own agentic AI library with a beautiful, user-friendly interface. Built with Python FastAPI backend and Electron + React frontend.
-
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![Python](https://img.shields.io/badge/python-3.8%2B-green.svg)
-![TypeScript](https://img.shields.io/badge/typescript-5.0%2B-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
-
----
-
-## ✨ Features
-
-### 🤖 Multi-Agent System
-- **Default Agent**: General purpose conversational AI
-- **Coding Agent**: Programming and development assistance
-- **Research Agent**: Information gathering and analysis
-- **Analysis Agent**: Data analysis and insights
-- **Creative Agent**: Writing and brainstorming
-
-### 🎨 Modern Interface
-- **Clean Design**: Inspired by Claude Desktop with modern UI/UX
-- **Dark/Light Mode**: Automatic theme switching
-- **Real-time Chat**: WebSocket-powered instant messaging
-- **Markdown Support**: Rich text formatting with syntax highlighting
-- **Responsive Layout**: Adapts to different window sizes
-
-### 🔧 Technical Features
-- **FastAPI Backend**: High-performance Python API
-- **Electron Frontend**: Cross-platform desktop application
-- **agentic_lib Integration**: Your own AI agent library
-- **Session Management**: Persistent chat history
-- **Tool Execution**: Integrated tools and utilities
-- **RESTful API**: Full REST API with OpenAPI documentation
+![Status](https://img.shields.io/badge/Status-Phase%203%20In%20Progress-orange)
+![Progress](https://img.shields.io/badge/Progress-75%25-green)
+![Python](https://img.shields.io/badge/Python-3.12+-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
 
 ---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- **Python 3.8+**
-- **Node.js 18+**
-- **npm or yarn**
+- **Python 3.12+** with virtual environment
+- **Node.js 18+** for frontend
+- **Git** for version control
 
-### 1. Clone & Setup
+### Installation
+
 ```bash
-git clone <repository>
+# 1. Clone the repository
+git clone <your-repo> spartacus
 cd spartacus
-source activate.sh  # Sets up Python environment
+
+# 2. Set up Python environment
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# 3. Install Python dependencies
 pip install -r requirements.txt
-```
 
-### 2. Start the Application
-```bash
-# Easy way - starts both backend and frontend
-python scripts/start_spartacus.py
-
-# Manual way - separate terminals
-# Terminal 1: Backend
-python spartacus_backend/start_backend.py
-
-# Terminal 2: Frontend (requires Node.js)
+# 4. Install frontend dependencies
 cd spartacus_frontend
 npm install
-npm run dev
+cd ..
+
+# 5. Start the application
+python start_spartacus.py
 ```
 
-### 3. Access the Application
-- **Desktop App**: Electron window opens automatically
-- **Web Interface**: http://localhost:3000
-- **API Documentation**: http://127.0.0.1:8000/docs
+The application will open automatically with:
+- **Backend API:** http://127.0.0.1:8000
+- **Frontend:** Electron desktop app
+- **Documentation:** http://127.0.0.1:8000/docs
 
 ---
 
-## 📁 Project Structure
+## 🏗️ Architecture
 
 ```
-spartacus/
-├── 🐍 agentic_lib/              # Core AI agent library
-│   ├── base_agent.py            # Base agent implementation
-│   ├── tools/                   # Agent tools and utilities
-│   └── context/                 # Context management
-│
-├── 🔧 spartacus_services/       # Shared services
-│   ├── context.py              # Context handling
-│   ├── logger.py               # Structured logging
-│   └── tool_base.py            # Tool base classes
-│
-├── 🌐 spartacus_backend/        # FastAPI Backend
-│   ├── main.py                 # FastAPI application
-│   ├── api/                    # API endpoints
-│   ├── services/               # Business logic
-│   ├── models/                 # Pydantic models
-│   └── config/                 # Configuration
-│
-├── 🖥️ spartacus_frontend/       # Electron + React Frontend
-│   ├── src/
-│   │   ├── main/               # Electron main process
-│   │   ├── preload/            # Preload scripts
-│   │   ├── App.tsx             # React application
-│   │   └── main.tsx            # React entry point
-│   ├── package.json            # Node.js dependencies
-│   └── tsconfig.json           # TypeScript config
-│
-├── 🧪 scripts/                  # Utility scripts
-│   ├── start_spartacus.py      # Combined launcher
-│   └── test_backend.py         # Backend tests
-│
-├── 📖 llm_clients/              # LLM client implementations
-├── 📝 doc_agent/                # Documentation and reports
-└── 📋 requirements.txt          # Python dependencies
+┌─────────────────────────────────────────────────────────────┐
+│                    Spartacus Desktop                        │
+├─────────────────────────────────────────────────────────────┤
+│  Frontend (Electron + React + TypeScript)                  │
+│  ├── Modern UI with Tailwind CSS                           │
+│  ├── Chat interface similar to Claude Desktop              │
+│  └── Real-time communication with backend                  │
+├─────────────────────────────────────────────────────────────┤
+│  Backend (FastAPI + Python)                                │
+│  ├── REST API endpoints                                     │
+│  ├── Agent management system                               │
+│  └── Tool orchestration                                    │
+├─────────────────────────────────────────────────────────────┤
+│  Agent System (agentic_lib)                                │
+│  ├── ReAct pattern (Reasoning + Acting)                    │
+│  ├── OpenAI-compatible tool calling                        │
+│  ├── Context injection & dependency management             │
+│  └── Multi-loop execution with error handling              │
+├─────────────────────────────────────────────────────────────┤
+│  LLM Integration                                            │
+│  ├── Azure OpenAI support                                  │
+│  ├── Extensible client system                              │
+│  └── Local model support (future)                          │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 🔌 API Endpoints
+## ✨ Features
 
-### Chat & Messaging
-- `POST /api/chat/message` - Send chat message
-- `GET /api/chat/history/{session_id}` - Get chat history
-- `WS /api/chat/stream` - WebSocket streaming
+### Current (Phase 1-2 Complete)
+- ✅ **Standalone Agent System:** ReAct-based agents with tool calling
+- ✅ **FastAPI Backend:** High-performance REST API
+- ✅ **Agent Manager:** Lifecycle management and orchestration
+- ✅ **Tool System:** Extensible tool framework with context injection
+- ✅ **Error Handling:** Comprehensive error management and logging
+- ✅ **Modern Frontend:** Electron + React + TypeScript foundation
+- ✅ **Developer Experience:** Hot reloading, type safety, documentation
 
-### Agent Management
-- `POST /api/agents/run` - Execute agent
-- `GET /api/agents/list` - List available agents
-- `POST /api/agents/create` - Create custom agent
+### In Progress (Phase 3)
+- 🚧 **Chat Interface:** Modern messaging UI
+- 🚧 **Backend Integration:** Real-time communication
+- 🚧 **Agent Configuration:** Tool selection and customization
 
-### Tools & Utilities
-- `GET /api/tools/list` - List available tools
-- `POST /api/tools/execute` - Execute tool
-
-### System Management
-- `GET /api/system/status` - System status
-- `GET /api/system/health` - Health check
-- `GET /api/system/config` - Configuration
+### Planned (Phase 4-5)
+- 🔮 **Custom Tools:** User-defined tool creation
+- 🔮 **Agent Templates:** Pre-configured setups
+- 🔮 **Multi-Modal:** Image and file processing
+- 🔮 **Cross-Platform:** Distribution packages
 
 ---
 
 ## 🛠️ Development
 
-### Backend Development
-```bash
-# Start backend with auto-reload
-python spartacus_backend/start_backend.py --reload
+### Project Structure
 
-# Run backend tests
-python scripts/test_backend.py
-
-# Check API documentation
-open http://127.0.0.1:8000/docs
+```
+spartacus/
+├── agentic_lib/           # Core agent logic
+│   ├── base_agent.py      # Multi-loop ReAct agent
+│   ├── tools.py           # Tool abstraction layer
+│   ├── context_injection.py # Dependency injection
+│   └── final_answer.py    # Termination tool
+├── spartacus_backend/     # FastAPI backend
+│   ├── main.py           # FastAPI application
+│   ├── api/              # REST endpoints
+│   ├── services/         # Business logic
+│   └── config/           # Configuration
+├── spartacus_frontend/    # Electron + React frontend
+│   ├── src/              # React TypeScript code
+│   ├── main/             # Electron main process
+│   └── preload/          # Electron preload scripts
+├── spartacus_services/    # Shared services
+├── llm_clients/          # LLM integrations
+├── scripts/              # Development scripts
+├── tests/                # Test suites
+├── docs/                 # Documentation
+└── start_spartacus.py    # Unified launcher
 ```
 
-### Frontend Development
+### Development Commands
+
 ```bash
+# Backend development
+cd spartacus_backend
+python -m uvicorn main:app --reload
+
+# Frontend development
 cd spartacus_frontend
+npm run dev
 
-# Install dependencies
-npm install
+# Full application
+python start_spartacus.py
 
-# Start development server
-npm run dev:react
+# Run tests
+python -m pytest tests/
+cd spartacus_frontend && npm test
 
-# Start Electron in development
-npm run dev:electron
-
-# Build for production
-npm run build
-```
-
-### Testing
-```bash
-# Backend tests
-python scripts/test_backend.py
-
-# Frontend tests (when added)
-cd spartacus_frontend
-npm test
+# Standalone agent testing
+python test_standalone.py
 ```
 
 ---
 
-## ⚙️ Configuration
+## 🔧 Configuration
 
 ### Environment Variables
 Create a `.env` file in the project root:
 
 ```env
-# Server Configuration
+# Azure OpenAI (optional)
+AZURE_OPENAI_API_KEY=your_api_key
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+AZURE_OPENAI_DEPLOYMENT_NAME=your-deployment
+
+# Backend settings
 SPARTACUS_HOST=127.0.0.1
 SPARTACUS_PORT=8000
+SPARTACUS_LOG_LEVEL=INFO
+
+# Development
 SPARTACUS_RELOAD=true
-
-# LLM Configuration
-SPARTACUS_DEFAULT_MODEL=gpt-4
-SPARTACUS_TEMPERATURE=0.7
-SPARTACUS_MAX_TOKENS=4000
-
-# Paths
-SPARTACUS_DATA_DIR=./data
-SPARTACUS_LOGS_DIR=./logs
 ```
 
 ### Agent Configuration
-Agents can be configured in `spartacus_backend/config/settings.py`:
+Configure agents in `spartacus_backend/config/agents.yaml`:
 
-```python
-# Maximum number of concurrent agents
-max_agents: int = 10
-
-# Agent timeout in seconds
-agent_timeout: int = 300
-
-# Maximum chat history length
-max_chat_history: int = 100
+```yaml
+default_agent:
+  name: "Spartacus Assistant"
+  max_iterations: 10
+  tools:
+    - final_answer
+    - web_search  # Future implementation
+    - file_operations  # Future implementation
+  
+custom_agents:
+  - name: "Code Assistant"
+    specialization: "programming"
+    tools: ["final_answer", "code_analysis", "git_operations"]
 ```
 
 ---
 
-## 🎯 Use Cases
+## 🧪 Testing
 
-### 💻 Development Assistant
-- Code review and debugging
-- Architecture suggestions
-- Documentation generation
-- Test creation
+### Backend Tests
+```bash
+# Run all backend tests
+cd spartacus_backend
+python -m pytest tests/ -v
 
-### 📊 Data Analysis
-- Data exploration and visualization
-- Statistical analysis
-- Report generation
-- Insights extraction
+# Test specific module
+python -m pytest tests/test_agents.py
 
-### 🔍 Research Assistant
-- Information gathering
-- Source verification
-- Summary generation
-- Fact checking
+# Test with coverage
+python -m pytest tests/ --cov=spartacus_backend
+```
 
-### ✍️ Creative Writing
-- Content creation
-- Brainstorming sessions
-- Editing and proofreading
-- Creative ideation
+### Frontend Tests
+```bash
+# Run React tests
+cd spartacus_frontend
+npm test
+
+# Run with coverage
+npm run test:coverage
+
+# E2E tests (future)
+npm run test:e2e
+```
+
+### Integration Tests
+```bash
+# Test standalone components
+python test_standalone.py
+
+# Test full stack integration
+python scripts/test_integration.py
+```
 
 ---
 
-## 🔒 Security
+## 📖 API Reference
 
-### Data Privacy
-- **Local Processing**: All data stays on your machine
-- **No External Dependencies**: Uses your own AI models
-- **Secure Communication**: HTTPS/WSS in production
-- **Context Isolation**: Isolated agent contexts
+### Chat Endpoints
+- `POST /api/chat/message` - Send message to agent
+- `GET /api/chat/history` - Get conversation history
+- `DELETE /api/chat/clear` - Clear conversation
 
-### Best Practices
-- Regular security updates
-- Input validation and sanitization
-- Secure configuration management
-- Audit logging
+### Agent Management
+- `GET /api/agents/available` - List available agents
+- `POST /api/agents/create` - Create new agent
+- `PUT /api/agents/{id}/config` - Update agent configuration
+
+### System
+- `GET /health` - Health check
+- `GET /api/system/status` - System status
+- `GET /docs` - API documentation
+
+Full API documentation available at http://127.0.0.1:8000/docs when running.
 
 ---
 
@@ -266,20 +258,39 @@ max_chat_history: int = 100
 
 ### Development Setup
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Follow the development setup above
+4. Make your changes with tests
 5. Submit a pull request
 
-### Code Style
-- **Python**: Follow PEP 8, use Black formatter
-- **TypeScript**: Use ESLint and Prettier
-- **Git**: Conventional commit messages
+### Coding Standards
+- **Python:** Follow PEP 8, use type hints, docstrings
+- **TypeScript:** Strict mode, ESLint configuration
+- **Commits:** Conventional commit format
+- **Tests:** Maintain >90% coverage
 
-### Testing
-- Write tests for new features
-- Ensure all tests pass
-- Maintain test coverage
+### Project Guidelines
+- All code must be in English (comments, variables, functions)
+- Use explicit parameter names for clarity
+- Create tests for new functionality
+- Update documentation for changes
+
+---
+
+## 📊 Status & Roadmap
+
+### Current Phase: Frontend Development (75% Complete)
+- ✅ Phase 1: Analysis & Architecture
+- ✅ Phase 2: Backend Integration  
+- 🚧 Phase 3: Frontend Development
+- 🔮 Phase 4: Advanced Features
+- 🔮 Phase 5: Distribution & Polish
+
+### Next Milestones
+1. **Chat Interface** - Complete messaging UI (1-2 weeks)
+2. **Backend Communication** - Real-time agent interaction (1 week)
+3. **Agent Configuration** - Tool selection interface (1 week)
+4. **Beta Release** - First distributable version (2 weeks)
 
 ---
 
@@ -289,68 +300,21 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-## 🎉 Acknowledgments
+## 🙏 Acknowledgments
 
-- **FastAPI** - For the excellent Python web framework
-- **Electron** - For cross-platform desktop app capabilities
-- **React** - For the modern UI framework
-- **Tailwind CSS** - For beautiful styling
-- **Claude AI** - For inspiration on the interface design
+- Inspired by Claude Desktop's excellent user experience
+- Built with modern Python and TypeScript ecosystems
+- Community-driven development approach
 
 ---
 
 ## 🆘 Support
 
-### Getting Help
-- 📖 **Documentation**: Check this README and code comments
-- 🐛 **Issues**: Report bugs on GitHub Issues
-- 💬 **Discussions**: Join GitHub Discussions for questions
-
-### Common Issues
-
-**Backend won't start:**
-```bash
-# Check Python version
-python --version
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Check logs
-python spartacus_backend/start_backend.py --log-level DEBUG
-```
-
-**Frontend won't build:**
-```bash
-# Clear node modules
-rm -rf spartacus_frontend/node_modules
-cd spartacus_frontend
-npm install
-
-# Check Node version
-node --version  # Should be 18+
-```
-
-**API Connection Issues:**
-- Ensure backend is running on port 8000
-- Check firewall settings
-- Verify CORS configuration
+- **Documentation:** `/doc_agent/` folder contains detailed guides
+- **Issues:** Use the GitHub issue tracker
+- **Discussions:** GitHub Discussions for questions
+- **Development:** See `/scripts/` for development utilities
 
 ---
 
-## 🚀 What's Next?
-
-### Roadmap
-- [ ] **Plugin System**: Custom tool integration
-- [ ] **Multiple LLM Support**: Support for different AI models
-- [ ] **Advanced UI**: More sophisticated interface features
-- [ ] **Mobile App**: React Native mobile version
-- [ ] **Cloud Sync**: Optional cloud synchronization
-- [ ] **Voice Interface**: Speech-to-text integration
-
-### Vision
-Spartacus Desktop aims to be the definitive personal AI assistant platform, providing a seamless bridge between cutting-edge AI capabilities and everyday productivity needs.
-
----
-
-**Made with ❤️ by the Spartacus Team**
+*Spartacus Desktop - Where artificial intelligence meets human productivity* 🏛️

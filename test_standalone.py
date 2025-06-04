@@ -13,7 +13,7 @@ load_dotenv()
 
 # Test imports
 try:
-    from llm_clients.azure_openai_client import AzureOpenAIClient
+    from agentic_lib.llm_clients.azure_openai_client import AzureOpenAIClient
     from spartacus_services.context import Context
     from agentic_lib.tools import Tool
     from spartacus_services.logger import logger
