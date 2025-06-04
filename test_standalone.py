@@ -35,7 +35,7 @@ async def test_basic_functionality():
         session_id="test-session",
         user_id="test-user"
     )
-    context.add_user_message("Hello, this is a test!")
+    context.add_simple_user_message("Hello, this is a test!")
     print(f"   ✅ Context created with {len(context.message_history)} messages")
     
     # 2. Test LLM Client (if configured)

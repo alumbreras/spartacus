@@ -1,0 +1,159 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply h-full;
+  }
+  
+  body {
+    @apply h-full m-0 font-sans antialiased bg-gray-50 text-gray-900;
+  }
+  
+  #root {
+    @apply h-full;
+  }
+}
+
+@layer components {
+  .prose {
+    @apply text-gray-900;
+  }
+  
+  .prose h1,
+  .prose h2,
+  .prose h3,
+  .prose h4,
+  .prose h5,
+  .prose h6 {
+    @apply text-gray-900 font-semibold;
+  }
+  
+  .prose p {
+    @apply text-gray-700 leading-relaxed;
+  }
+  
+  .prose code {
+    @apply bg-gray-100 text-gray-800 px-1 py-0.5 rounded text-sm;
+  }
+  
+  .prose pre {
+    @apply bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto;
+  }
+  
+  .prose pre code {
+    @apply bg-transparent text-gray-100 p-0;
+  }
+  
+  .prose ul {
+    @apply list-disc list-inside space-y-1;
+  }
+  
+  .prose ol {
+    @apply list-decimal list-inside space-y-1;
+  }
+  
+  .prose blockquote {
+    @apply border-l-4 border-gray-300 pl-4 italic text-gray-600;
+  }
+  
+  .prose a {
+    @apply text-blue-600 hover:text-blue-800 underline;
+  }
+  
+  .prose table {
+    @apply min-w-full border-collapse border border-gray-300;
+  }
+  
+  .prose th,
+  .prose td {
+    @apply border border-gray-300 px-3 py-2;
+  }
+  
+  .prose th {
+    @apply bg-gray-100 font-semibold;
+  }
+}
+
+@layer components {
+  .dark .prose {
+    @apply text-gray-100;
+  }
+  
+  .dark .prose h1,
+  .dark .prose h2,
+  .dark .prose h3,
+  .dark .prose h4,
+  .dark .prose h5,
+  .dark .prose h6 {
+    @apply text-gray-100;
+  }
+  
+  .dark .prose p {
+    @apply text-gray-300;
+  }
+  
+  .dark .prose code {
+    @apply bg-gray-800 text-gray-200;
+  }
+  
+  .dark .prose blockquote {
+    @apply border-gray-600 text-gray-400;
+  }
+  
+  .dark .prose a {
+    @apply text-blue-400 hover:text-blue-300;
+  }
+  
+  .dark .prose th {
+    @apply bg-gray-800 text-gray-200;
+  }
+  
+  .dark .prose td {
+    @apply border-gray-600 text-gray-300;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  @apply w-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400;
+}
+
+.dark ::-webkit-scrollbar-track {
+  @apply bg-gray-800;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  @apply bg-gray-600;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-500;
+}
+
+/* Loading animation */
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 1.4s infinite ease-in-out both;
+} 

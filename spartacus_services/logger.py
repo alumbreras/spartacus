@@ -104,4 +104,16 @@ class StructuredFormatter(logging.Formatter):
             return json.dumps(log_entry, indent=None)
 
 # Create default logger instance
-logger = StructuredLogger() 
+logger = StructuredLogger()
+
+def get_logger(name: str = "spartacus") -> StructuredLogger:
+    """
+    Get a logger instance for the given name.
+    
+    Args:
+        name: Logger name
+        
+    Returns:
+        StructuredLogger instance
+    """
+    return StructuredLogger(name) 

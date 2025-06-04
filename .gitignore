@@ -109,4 +109,6 @@ secrets.json
 *.msi
 *.deb
 *.rpm
-*.AppImage 
+*.AppImage
+
+google-adk-python/

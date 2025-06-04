@@ -70,36 +70,18 @@ class Context(BaseModel):
         description="LLM temperature setting"
     )
     
-    def add_user_message(self, content: str) -> None:
-        """Add a user message to the conversation history."""
-        self.message_history.append({
-            "role": "user",
-            "content": content
-        })
-    
-    def add_assistant_message(self, content: str, tool_calls: Optional[List[Dict]] = None) -> None:
-        """Add an assistant message to the conversation history."""
-        message = {
-            "role": "assistant",
-            "content": content
-        }
-        if tool_calls:
-            message["tool_calls"] = tool_calls
-        
-        self.message_history.append(message)
-    
-    def add_tool_result(self, tool_call_id: str, content: str) -> None:
-        """Add a tool result to the conversation history."""
-        self.message_history.append({
-            "role": "tool",
-            "tool_call_id": tool_call_id,
-            "content": content
-        })
-    
+    # ✅ Basic utility methods (no OpenAI-specific logic)
     def clear_history(self) -> None:
         """Clear the conversation history."""
         self.message_history = []
     
     def get_last_n_messages(self, n: int) -> List[Dict[str, Any]]:
         """Get the last n messages from history."""
-        return self.message_history[-n:] if self.message_history else [] 
+        return self.message_history[-n:] if self.message_history else []
+    
+    def add_simple_user_message(self, content: str) -> None:
+        """Add a simple user message (for testing/basic use)."""
+        self.message_history.append({
+            "role": "user",
+            "content": content
+        }) 
