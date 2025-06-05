@@ -112,3 +112,4 @@ secrets.json
 *.AppImage
 
 google-adk-python/
+credentials_gmail.json

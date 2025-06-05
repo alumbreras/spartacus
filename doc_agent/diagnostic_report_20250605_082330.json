@@ -1,0 +1,104 @@
+{
+  "timestamp": "2025-06-05T08:23:30.155893",
+  "project_root": "/Users/a.lumbreras/Code/personal/spartacus",
+  "python_version": "3.12.4 (main, Dec  1 2024, 21:06:36) [Clang 16.0.0 (clang-1600.0.26.4)]",
+  "platform": "darwin",
+  "tests": {
+    "Project Structure": {
+      "success": true,
+      "checked_dirs": 7,
+      "checked_files": 6,
+      "issues": []
+    },
+    "Python Modules": {
+      "success": true,
+      "import_results": {
+        "fastapi": "\u2705",
+        "uvicorn": "\u2705",
+        "openai": "\u2705",
+        "requests": "\u2705",
+        "pathlib": "\u2705",
+        "agentic_lib": "\u2705",
+        "agentic_lib.tools": "\u2705",
+        "spartacus_backend": "\u2705",
+        "spartacus_backend.main": "\u2705"
+      },
+      "issues": []
+    },
+    "Gmail Integration": {
+      "success": false,
+      "gmail_status": {
+        "mcp_directory": true,
+        "package_json": true,
+        "typescript_built": true,
+        "config_directory": true,
+        "credentials_file": true,
+        "token_file": false,
+        "tools_importable": true
+      },
+      "issues": [
+        "Gmail access token missing - need OAuth authentication"
+      ]
+    },
+    "Backend Imports": {
+      "success": false,
+      "backend_app": true,
+      "context_module": false,
+      "agent_manager": true,
+      "issues": [
+        "Missing context module: No module named 'agentic_lib.context'",
+        "Created minimal context module"
+      ]
+    },
+    "API Availability": {
+      "success": false,
+      "base_url": "http://127.0.0.1:8000",
+      "endpoint_status": {
+        "/health": {
+          "status_code": null,
+          "available": false
+        },
+        "/": {
+          "status_code": null,
+          "available": false
+        },
+        "/docs": {
+          "status_code": null,
+          "available": false
+        }
+      },
+      "issues": [
+        "Endpoint /health not accessible (backend not running)",
+        "Endpoint / not accessible (backend not running)",
+        "Endpoint /docs not accessible (backend not running)"
+      ]
+    },
+    "Frontend Setup": {
+      "success": true,
+      "frontend_status": {
+        "directory_exists": true,
+        "package_json": true,
+        "dependencies_installed": true
+      },
+      "issues": []
+    },
+    "Dependencies": {
+      "success": true,
+      "dependency_status": {
+        "node": {
+          "available": true,
+          "version": "v23.3.0"
+        },
+        "npm": {
+          "available": true,
+          "version": "10.9.0"
+        },
+        "python3": {
+          "available": true,
+          "version": "Python 3.12.4"
+        }
+      },
+      "issues": []
+    }
+  }
+}

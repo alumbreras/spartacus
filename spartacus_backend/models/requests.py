@@ -14,6 +14,7 @@ class AgentType(str, Enum):
     CODING = "coding"
     ANALYSIS = "analysis"
     CREATIVE = "creative"
+    EMAIL = "email"
 
 
 class AgentRunRequest(BaseModel):

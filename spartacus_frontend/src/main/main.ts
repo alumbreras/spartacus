@@ -106,13 +106,15 @@ class SpartacusApp {
 
   private startBackend(): void {
     const backendPath = path.join(__dirname, '../../../spartacus_backend/start_backend.py');
+    const rootPath = path.join(__dirname, '../../../');
     
     console.log('🚀 Starting Spartacus Backend...');
     
     // Start Python backend
     backendProcess = spawn('python', [backendPath, '--host', '127.0.0.1', '--port', BACKEND_PORT.toString()], {
-      cwd: path.join(__dirname, '../../../'),
-      stdio: ['pipe', 'pipe', 'pipe']
+      cwd: rootPath,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: { ...process.env, PYTHONPATH: rootPath }
     });
 
     backendProcess.stdout?.on('data', (data) => {

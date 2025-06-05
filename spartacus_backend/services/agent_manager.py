@@ -6,8 +6,9 @@ Manages agent lifecycle, execution, and state
 import asyncio
 import uuid
 import time
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Union
 from datetime import datetime
+from enum import Enum
 
 # Import agentic_lib components
 import sys
@@ -19,6 +20,15 @@ from agentic_lib.tools import Tool
 from spartacus_services.context import Context
 from spartacus_services.logger import get_logger
 from agentic_lib.llm_clients.azure_openai_client import AzureOpenAIClient
+from agentic_lib.final_answer import final_answer_tool
+
+# Import Gmail tools
+try:
+    from agentic_lib.gmail_tools import gmail_send_tool, gmail_search_tool, gmail_read_tool
+    GMAIL_TOOLS_AVAILABLE = True
+except ImportError as e:
+    print(f"Gmail tools not available: {e}")
+    GMAIL_TOOLS_AVAILABLE = False
 
 from spartacus_backend.models.requests import AgentType
 from spartacus_backend.models.responses import AgentInfo, ToolInfo, AgentListResponse, ResponseStatus
@@ -107,12 +117,17 @@ class SpartacusAgentManager:
     async def _load_tools(self):
         """Load available tools from agentic_lib"""
         try:
-            # Import only the tools that actually exist
-            from agentic_lib.final_answer import final_answer_tool
-            
             # Register actual tools
             self.tools["final_answer"] = final_answer_tool
             logger.info(f"Registered tool: final_answer")
+            
+            # Register Gmail tools if available
+            if GMAIL_TOOLS_AVAILABLE:
+                self.tools[gmail_send_tool.name] = gmail_send_tool
+                self.tools[gmail_search_tool.name] = gmail_search_tool
+                self.tools[gmail_read_tool.name] = gmail_read_tool
+                
+                logger.info(f"Registered Gmail tools: {gmail_send_tool.name}, {gmail_search_tool.name}, {gmail_read_tool.name}")
             
             # Create mock tools for missing functionality (future implementation)
             mock_tools = {
@@ -183,34 +198,43 @@ class SpartacusAgentManager:
                 "name": "Research Agent",
                 "description": "Specialized in research and information gathering",
                 "instructions": "You are a research specialist. Help users find and analyze information.",
-                "tools": ["web_search", "file_reader"]
+                "tools": ["web_search", "file_reader", "final_answer"]
             },
             AgentType.CODING: {
                 "name": "Coding Agent", 
                 "description": "Specialized in programming and code analysis",
                 "instructions": "You are a programming expert. Help with coding, debugging, and development.",
-                "tools": ["python_executor", "file_reader"]
+                "tools": ["python_executor", "file_reader", "final_answer"]
             },
             AgentType.ANALYSIS: {
                 "name": "Analysis Agent",
                 "description": "Specialized in data analysis and insights",
                 "instructions": "You are a data analyst. Help analyze data and provide insights.",
-                "tools": ["python_executor", "file_reader"]
+                "tools": ["python_executor", "file_reader", "final_answer"]
             },
             AgentType.CREATIVE: {
                 "name": "Creative Agent",
                 "description": "Specialized in creative tasks and writing",
                 "instructions": "You are a creative assistant. Help with writing, brainstorming, and creative tasks.",
-                "tools": ["file_reader"]
+                "tools": ["file_reader", "final_answer"]
             }
         }
         
+        # Add Email Agent if Gmail tools are available
+        if GMAIL_TOOLS_AVAILABLE:
+            default_configs["email"] = {
+                "name": "Email Assistant",
+                "description": "Specialized in Gmail management and email operations",
+                "instructions": "You are an email management specialist. You can send emails, search through Gmail, read specific emails, and help organize email communications. Use Gmail tools to manage emails efficiently.",
+                "tools": ["gmail_send", "gmail_search", "gmail_read", "final_answer"]
+            }
+        
         for agent_type, config in default_configs.items():
             agent_id = await self.create_agent(
-                agent_type=agent_type.value,
+                agent_type=agent_type.value if hasattr(agent_type, 'value') else agent_type,
                 **config
             )
-            logger.info(f"Created default agent: {agent_type.value} ({agent_id})")
+            logger.info(f"Created default agent: {agent_type.value if hasattr(agent_type, 'value') else agent_type} ({agent_id})")
     
     async def create_agent(
         self,
@@ -249,7 +273,7 @@ class SpartacusAgentManager:
                     llm_client=self.llm_client,
                     tools=agent_tools,
                     system_prompt=system_prompt,
-                    max_iterations=10
+                    max_iterations=20
                 )
                 logger.info(f"✅ Real BaseAgent created for {name} with {len(agent_tools)} tools")
             
@@ -270,7 +294,7 @@ class SpartacusAgentManager:
         agent_type: str = AgentType.DEFAULT.value,
         context: Optional[Dict[str, Any]] = None,
         session_id: Optional[str] = None,
-        max_iterations: int = 10
+        max_iterations: int = 20
     ) -> Dict[str, Any]:
         """Run an agent with user input"""
         start_time = time.time()

@@ -74,9 +74,8 @@ class BaseAgent:
         # Add conversation history
         messages.extend(context.message_history)
         
-        # Add current user input (only on first iteration)
-        if not context.message_history or not any(msg.get("role") == "user" for msg in context.message_history[-5:]):
-            messages.append({"role": "user", "content": user_input})
+        # ✅ SIMPLIFIED: Always add user input (simple and clear)
+        messages.append({"role": "user", "content": user_input})
         
         return messages
     
@@ -132,41 +131,61 @@ class BaseAgent:
         """
         executed_tools = []
         
+        # ✅ CRITICAL: Process ALL tool_calls and ensure each gets a response
         for tool_call in tool_calls:
             tool_name = tool_call.function.name
             tool_instance = self.tools.get(tool_name)
+            tool_call_id = tool_call.id
             
-            # Check for final_answer tool
-            if tool_name == "final_answer":
-                arguments = json.loads(tool_call.function.arguments)
-                final_answer = arguments.get("answer", "Task completed.")
+            try:
+                # Check for final_answer tool
+                if tool_name == "final_answer":
+                    arguments = json.loads(tool_call.function.arguments)
+                    final_answer_content = arguments.get("answer", "Task completed.")
+                    
+                    # ✅ MUST add tool response even for final_answer
+                    context.message_history.append({
+                        "role": "tool",
+                        "tool_call_id": tool_call_id,
+                        "content": "Final answer provided."
+                    })
+                    
+                    executed_tools.append(f"final_answer")
+                    return executed_tools, True, final_answer_content
                 
-                # Add final answer to history
-                self._add_tool_result_to_history(context, tool_call.id, f"Final answer: {final_answer}")
+                # Execute regular tool
+                if tool_instance:
+                    logger.info(f"Base agent executing tool: {tool_name} (args: {tool_call.function.arguments})")
+                    arguments = json.loads(tool_call.function.arguments)
+                    tool_result = await tool_instance.invoke(context, arguments)
+                    executed_tools.append(tool_name)
+                    
+                    # ✅ CRITICAL: Always add tool response message
+                    context.message_history.append({
+                        "role": "tool",
+                        "tool_call_id": tool_call_id,
+                        "content": str(tool_result)
+                    })
+                else:
+                    # ✅ CRITICAL: Even for unknown tools, add response to avoid Azure OpenAI error
+                    error_msg = f"Unknown tool: {tool_name}"
+                    logger.warning(error_msg)
+                    context.message_history.append({
+                        "role": "tool", 
+                        "tool_call_id": tool_call_id,
+                        "content": error_msg
+                    })
+                    
+            except Exception as e:
+                error_msg = f"Tool {tool_name} failed: {str(e)}"
+                logger.error(error_msg)
                 
-                return executed_tools, True, final_answer
-            
-            if tool_instance:
-                structured_logger.info(f"Base agent executing tool: {tool_name} (args: {tool_call.function.arguments})")
-                
-                # Execute tool with context injection and callbacks
-                formatted_result = await tool_instance.invoke(
-                    ctx=context,
-                    arguments=json.loads(tool_call.function.arguments)
-                )
-                
-                # Add tool result to conversation history
-                self._add_tool_result_to_history(context, tool_call.id, formatted_result)
-                
-                executed_tools.append(tool_name)
-                
-                logger.info(f"Tool {tool_name} executed successfully")
-                
-            else:
-                # Handle unknown tool
-                logger.warning(f"Unknown tool requested: {tool_name}")
-                error_content = json.dumps({"error": f"Unknown tool: {tool_name}"})
-                self._add_tool_result_to_history(context, tool_call.id, error_content)
+                # ✅ CRITICAL: Always add error response to maintain tool_call/response pairing
+                context.message_history.append({
+                    "role": "tool",
+                    "tool_call_id": tool_call_id, 
+                    "content": error_msg
+                })
         
         return executed_tools, False, None
     
@@ -197,9 +216,22 @@ class BaseAgent:
                 
                 # 3. Handle LLM response
                 if llm_response.tool_calls:
-                    # Add assistant's message with tool calls to history  
-                    # ✅ FIXED: content=None when tool_calls are present (OpenAI requirement)
-                    self._add_assistant_message_to_history(context, None, llm_response.tool_calls)
+                    # ✅ CRITICAL FIX: Add assistant message with empty content first
+                    # This is REQUIRED by OpenAI API when tool_calls are present
+                    context.message_history.append({
+                        "role": "assistant",
+                        "content": "",
+                        "tool_calls": [
+                            {
+                                "id": tool_call.id,
+                                "type": "function",
+                                "function": {
+                                    "name": tool_call.function.name,
+                                    "arguments": tool_call.function.arguments
+                                }
+                            } for tool_call in llm_response.tool_calls
+                        ]
+                    })
                     
                     # Execute tools sequentially and check for final_answer
                     executed_tools, is_final, final_answer = await self._execute_tools_sequentially(context, llm_response.tool_calls)
