@@ -21,18 +21,27 @@ async def gmail_send_function(ctx, args: GmailSendInput) -> str:
     gmail_client = GmailMCPClient()
     
     try:
-        result = await gmail_client.send_email(
+        mcp_response = await gmail_client.send_email(
             to=args.to,
             subject=args.subject,
             body=args.body,
             html_body=args.html_body if args.html_body else None,
             cc=args.cc if args.cc else None
         )
+
+        response_text = "No response from server."
+        if mcp_response.get("content") and mcp_response["content"][0].get("text"):
+            response_text = mcp_response["content"][0]["text"]
+
+        if "error" in response_text.lower():
+             return f"Failed to send email. Server responded: {response_text}"
         
-        return f"Email sent successfully to {', '.join(args.to)}"
+        return (f"Successfully sent email to '{', '.join(args.to)}' "
+                f"with subject '{args.subject}'. "
+                f"Server confirmation: {response_text}")
         
     except Exception as e:
-        return f"Error sending email: {str(e)}"
+        return f"An unexpected error occurred while sending email: {str(e)}"
     
     finally:
         # await gmail_client.stop_server() # This was causing the server to stop after each call
