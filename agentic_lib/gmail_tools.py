@@ -35,7 +35,8 @@ async def gmail_send_function(ctx, args: GmailSendInput) -> str:
         return f"Error sending email: {str(e)}"
     
     finally:
-        await gmail_client.stop_server()
+        # await gmail_client.stop_server() # This was causing the server to stop after each call
+        pass
 
 class GmailSearchInput(BaseModel):
     """Input parameters for searching emails"""
@@ -71,7 +72,8 @@ async def gmail_search_function(ctx, args: GmailSearchInput) -> str:
         return f"Error searching emails: {str(e)}"
     
     finally:
-        await gmail_client.stop_server()
+        # await gmail_client.stop_server() # This was causing the server to stop after each call
+        pass
 
 class GmailReadInput(BaseModel):
     """Input parameters for reading emails"""
@@ -98,7 +100,8 @@ async def gmail_read_function(ctx, args: GmailReadInput) -> str:
         return f"Error reading email: {str(e)}"
     
     finally:
-        await gmail_client.stop_server()
+        # await gmail_client.stop_server() # This was causing the server to stop after each call
+        pass
 
 # Create the tool instances
 gmail_send_tool = Tool(
