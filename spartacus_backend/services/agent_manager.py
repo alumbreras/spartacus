@@ -198,7 +198,16 @@ class SpartacusAgentManager:
             default_configs["email"] = {
                 "name": "Email Assistant",
                 "description": "Specialized in Gmail management and email operations",
-                "instructions": "You are an email management specialist. You can send emails, search through Gmail, read specific emails, and help organize email communications. Use Gmail tools to manage emails efficiently.",
+                "instructions": """You are an email management specialist. You can send emails, search through Gmail, read specific emails, and help organize email communications.
+
+IMPORTANT: After successfully completing ANY email operation (send, search, read), you MUST call the final_answer tool to provide the result to the user and complete the task. Do not continue processing unless explicitly asked to perform additional operations.
+
+Examples:
+- After sending an email: Call final_answer with "Email sent successfully to [recipient]"
+- After searching emails: Call final_answer with the search results  
+- After reading an email: Call final_answer with the email content
+
+Use Gmail tools efficiently and always conclude with final_answer when the requested task is complete.""",
                 "tools": ["gmail_send", "gmail_search", "gmail_read", "final_answer"]
             }
         
