@@ -18,7 +18,8 @@ class GmailSendInput(BaseModel):
 async def gmail_send_function(ctx, args: GmailSendInput) -> str:
     """Send an email via Gmail"""
     
-    gmail_client = GmailMCPClient()
+    # Use shared Gmail client from context if available, otherwise create new one
+    gmail_client = getattr(ctx, 'gmail_client', None) or ctx.session_data.get('gmail_client') or GmailMCPClient()
     
     try:
         mcp_response = await gmail_client.send_email(
@@ -55,7 +56,8 @@ class GmailSearchInput(BaseModel):
 async def gmail_search_function(ctx, args: GmailSearchInput) -> str:
     """Search emails in Gmail using Gmail search syntax"""
     
-    gmail_client = GmailMCPClient()
+    # Use shared Gmail client from context if available, otherwise create new one
+    gmail_client = getattr(ctx, 'gmail_client', None) or ctx.session_data.get('gmail_client') or GmailMCPClient()
     
     try:
         emails = await gmail_client.search_emails(args.query, args.max_results)
@@ -91,7 +93,8 @@ class GmailReadInput(BaseModel):
 async def gmail_read_function(ctx, args: GmailReadInput) -> str:
     """Read a specific email by its ID"""
     
-    gmail_client = GmailMCPClient()
+    # Use shared Gmail client from context if available, otherwise create new one
+    gmail_client = getattr(ctx, 'gmail_client', None) or ctx.session_data.get('gmail_client') or GmailMCPClient()
     
     try:
         email = await gmail_client.read_email(args.message_id)

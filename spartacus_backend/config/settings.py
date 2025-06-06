@@ -6,7 +6,10 @@ from pydantic_settings import BaseSettings
 from pydantic import Field, ConfigDict
 from typing import List
 import os
+from dotenv import load_dotenv
 
+# Load environment variables from .env file
+load_dotenv()
 
 class Settings(BaseSettings):
     """Application settings"""
@@ -65,6 +68,8 @@ class Settings(BaseSettings):
     # Paths
     data_dir: str = Field(default="./data", description="Data directory")
     logs_dir: str = Field(default="./logs", description="Logs directory")
+
+    SPARTACUS_ENV: str = Field(default="development", description="Environment")
 
 
 def get_settings() -> Settings:

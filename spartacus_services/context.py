@@ -59,6 +59,12 @@ class Context(BaseModel):
         description="Additional metadata for tools and agents"
     )
     
+    # Session data for tools and services
+    session_data: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Session-specific data like service clients and temporary state"
+    )
+    
     # Configuration
     max_iterations: int = Field(
         default=10,
